@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>西方文明史消消乐</title>
+</head>
+
+    <style>
+        body {
+            background-color: #FFF8E7;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        #game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .bubble {
+            width: 120px;
+            height: 120px;
+            background: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            transform: perspective(500px) rotateX(20deg);
+            font-size: 18px;
+            line-height: 1.3;
+        }
+
+        .bubble:hover {
+            transform: perspective(500px) rotateX(20deg) scale(1.1);
+        }
+
+        .selected {
+            transform: perspective(500px) rotateX(20deg) scale(1.2);
+            box-shadow: 0 0 15px gold;
+        }
+
+        .matched {
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        #result {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>西方文明史消消乐</h1>
+    <div id="game-container"></div>
+    <div id="result">
+        <h2>恭喜你挑战成功！</h2>
+        <p>用时：<span id="time">0</span>秒</p >
+    </div>
+
+    <script>
+        // 知识点配对列表（可自行修改扩展）
+        const knowledgePairs = [
+            { id: 1, term1: "文艺复兴", term2: "人文主义" },
+            { id: 2, term1: "启蒙运动", term2: "理性主义" },
+            { id: 3, term1: "工业革命", term2: "蒸汽机" },
+            { id: 4, term1: "雅典民主", term2: "公民大会" },
+            { id: 5, term1: "宗教改革", term2: "马丁·路德" },
+            { id: 6, term1: "罗马帝国", term2: "凯撒大帝" },
+            { id: 7, term1: "1787年宪法", term2: "三权分立" },
+            { id: 8, term1: "地理大发现", term2: "哥伦布" }
+        ];
+
+        let selectedBubbles = [];
+        let gameStartTime = Date.now();
+        let gameActive = true;
+
+        // 创建游戏泡泡
+        function createGame() {
+            const container = document.getElementById('game-container');
+            const allTerms = [];
+            
+            // 生成包含所有术语的数组
+            knowledgePairs.forEach(pair => {
+                allTerms.push({ text: pair.term1, id: pair.id });
+                allTerms.push({ text: pair.term2, id: pair.id });
+            });
+
+            // 打乱顺序
+            const shuffled = allTerms.sort(() => Math.random() - 0.5);
+            
+            shuffled.forEach(term => {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.textContent = term.text;
+                bubble.dataset.pairId = term.id;
+                
+                // 随机生成颜色
+                const hue = Math.floor(Math.random() * 360);
+                bubble.style.backgroundColor = `hsl(${hue}, 70%, 50%)`;
+                
+                bubble.addEventListener('click', () => handleClick(bubble));
+                container.appendChild(bubble);
+            });
+        }
+
+        function handleClick(bubble) {
+            if (!gameActive || bubble.classList.contains('selected')) return;
+
+            bubble.classList.add('selected');
+            selectedBubbles.push(bubble);
+
+            if (selectedBubbles.length === 2) {
+                setTimeout(checkMatch, 500);
+            }
+        }
+
+        function checkMatch() {
+            const [first, second] = selectedBubbles;
+            
+            // 检查配对ID是否相同
+            if (first.dataset.pairId === second.dataset.pairId) {
+                first.classList.add('matched');
+                second.classList.add('matched');
+                checkWin();
+            } else {
+                first.classList.remove('selected');
+                second.classList.remove('selected');
+            }
+            
+            selectedBubbles = [];
+        }
+
+        function checkWin() {
+            const remaining = document.querySelectorAll('.bubble:not(.matched)');
+            if (remaining.length === 0) {
+                gameActive = false;
+                const time = Math.floor((Date.now() - gameStartTime) / 1000);
+                document.getElementById('time').textContent = time;
+                document.getElementById('result').style.display = 'block';
+            }
+        }
+
+        // 初始化游戏
+        createGame();
+    </script>
+</body>
+</html>
+
